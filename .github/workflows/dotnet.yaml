@@ -79,10 +79,10 @@ jobs:
 
       - name: Copy Azure Credentials Secret to Another Repository
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GIT_PAT }}
         run: |
-          curl -X PUT -H "Authorization: Bearer $GITHUB_TOKEN" \
-          -d '{"encrypted_value": "${{ secrets.AZURE_CREDENTIALS }}"}' \
+          curl -X PUT -H "Authorization: Bearer $GIT_PAT" \
+          -d '{"encrypted_value": "your-azure-credentials-encrypted-value"}' \
           "https://api.github.com/user/repos/Prayankag/AppRepos/actions/secrets/AZURE_CREDENTIALS"
 
       - name: Setup Azure Login using Service Principal

@@ -1,4 +1,4 @@
-ame: dotnet Build & Deploy in web App
+name: cred
 
 on:
   push:

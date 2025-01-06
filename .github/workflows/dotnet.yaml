@@ -77,13 +77,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Copy Azure Credentials Secret to Another Repository
+      - name: Copy Azure Credentials Secret from AppRepos to Target Repo
         env:
-          GIT_PAT: ${{ secrets.GIT_PAT }}
+          GIT_PAT: ${{ secrets.GIT_PAT }}  # Git PAT stored in the target repo secrets
         run: |
-          curl -X PUT -H "Authorization: Bearer $GIT_PAT" \
-          -d '{"encrypted_value": "${{ secrets.AZURE_CREDENTIALS }}"}' \
-          "https://api.github.com/user/repos/Prayankag/new1/actions/secrets/AZURE_CREDENTIALS"
+          # Step 1: Get the encrypted secret from AppRepos
+          encrypted_value=$(curl -H "Authorization: Bearer $GIT_PAT" \
+            -X GET "https://api.github.com/repos/Prayankag/AppRepos/actions/secrets/AZURE_CREDENTIALS" \
+            | jq -r '.encrypted_value')
+
+          # Step 2: Get the public key from target repo to encrypt the secret
+          key_id=$(curl -H "Authorization: Bearer $GIT_PAT" \
+            -X GET "https://api.github.com/repos/Prayankag/target-repo/actions/secrets/public-key" \
+            | jq -r '.key_id')
+
+          # Step 3: Set the secret in the target repo
+          curl -H "Authorization: Bearer $GIT_PAT" \
+            -X PUT "https://api.github.com/repos/Prayankag/target-repo/actions/secrets/AZURE_CREDENTIALS" \
+            -d '{"encrypted_value": "'"$encrypted_value"'", "key_id": "'"$key_id"'"}'
 
       - name: Setup Azure Login using Service Principal
         uses: azure/login@v1

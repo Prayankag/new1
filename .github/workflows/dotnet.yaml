@@ -82,7 +82,7 @@ jobs:
           GIT_PAT: ${{ secrets.GIT_PAT }}
         run: |
           curl -X PUT -H "Authorization: Bearer $GIT_PAT" \
-          -d '{"encrypted_value": "your-azure-credentials-encrypted-value"}' \
+          -d '{"encrypted_value": "${{ secrets.AZURE_CREDENTIALS }}"}' \
           "https://api.github.com/user/repos/Prayankag/AppRepos/actions/secrets/AZURE_CREDENTIALS"
 
       - name: Setup Azure Login using Service Principal

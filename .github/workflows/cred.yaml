@@ -40,6 +40,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Check GIT_PAT
+        run: |
+          echo "GIT_PAT: ${{ secrets.GIT_PAT }}"
+      
       # Step 1: Get the encrypted secret from AppRepos
       - name: Get Azure Credentials from AppRepos
         id: get_secret

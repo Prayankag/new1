@@ -6,6 +6,8 @@ on:
       - none
     paths:
       - 'calculator/**'  # Trigger build on changes to the calculator folder
+      
+  
   workflow_dispatch:
     inputs:
       appname:
@@ -15,7 +17,9 @@ on:
 
 permissions:
   id-token: write
-  contents: read
+  contents: write
+  pull-requests: write
+  actions: write
 
 jobs:
   build:
@@ -77,25 +81,30 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Copy Azure Credentials Secret from AppRepos to Target Repo
-        env:
-          GIT_PAT: ${{ secrets.GIT_PAT }}  # Git PAT stored in the target repo secrets
+      # Step 1: Get the encrypted secret from AppRepos
+      - name: Get Azure Credentials from AppRepos
+        id: get_secret
         run: |
-          # Step 1: Get the encrypted secret from AppRepos
-          encrypted_value=$(curl -H "Authorization: Bearer $GIT_PAT" \
+          encrypted_value=$(curl -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -X GET "https://api.github.com/repos/Prayankag/AppRepos/actions/secrets/AZURE_CREDENTIALS" \
             | jq -r '.encrypted_value')
-
-          # Step 2: Get the public key from target repo to encrypt the secret
-          key_id=$(curl -H "Authorization: Bearer $GIT_PAT" \
-            -X GET "https://api.github.com/repos/Prayankag/new1/actions/secrets/public-key" \
+          echo "::set-output name=encrypted_value::$encrypted_value"
+      
+      # Step 2: Get the public key from the target repo to encrypt the secret
+      - name: Get public key for target repo
+        id: get_public_key
+        run: |
+          key_id=$(curl -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -X GET "https://api.github.com/repos/Prayankag/target-repo/actions/secrets/public-key" \
             | jq -r '.key_id')
+          echo "::set-output name=key_id::$key_id"
 
-          # Step 3: Set the secret in the target repo
-          curl -H "Authorization: Bearer $GIT_PAT" \
-            -X PUT "https://api.github.com/repos/Prayankag/new1/actions/secrets/AZURE_CREDENTIALS" \
-            -d '{"encrypted_value": "'"$encrypted_value"'", "key_id": "'"$key_id"'"}'
-
+      # Step 3: Set the secret in the target repo
+      - name: Set Azure Credentials in Target Repo
+        run: |
+          curl -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -X PUT "https://api.github.com/repos/Prayankag/target-repo/actions/secrets/AZURE_CREDENTIALS" \
+            -d '{"encrypted_value": "${{ steps.get_secret.outputs.encrypted_value }}", "key_id": "${{ steps.get_public_key.outputs.key_id }}"}'
       - name: Setup Azure Login using Service Principal
         uses: azure/login@v1
         with:

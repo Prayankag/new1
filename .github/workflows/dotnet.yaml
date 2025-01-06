@@ -77,14 +77,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Copy Azure Credentials Secret to Another Repository
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          curl -X PUT -H "Authorization: Bearer $GITHUB_TOKEN" \
-          -d '{"encrypted_value": "${{ secrets.AZURE_CREDENTIALS }}"}' \
-          "https://api.github.com/user/repos/Prayankag/AppRepos/actions/secrets/AZURE_CREDENTIALS"
-
       - name: Setup Azure Login using Service Principal
         uses: azure/login@v1
         with:
@@ -128,14 +120,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
-      - name: Copy Azure Credentials Secret to Another Repository
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          curl -X PUT -H "Authorization: Bearer $GITHUB_TOKEN" \
-          -d '{"encrypted_value": "${{ secrets.AZURE_CREDENTIALS }}"}' \
-          "https://api.github.com/repos/your-org/target-repo/actions/secrets/AZURE_CREDENTIALS"
 
       - name: Setup Azure Login using Service Principal
         uses: azure/login@v1
@@ -187,14 +171,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
-      - name: Copy Azure Credentials Secret to Another Repository
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          curl -X PUT -H "Authorization: Bearer $GITHUB_TOKEN" \
-          -d '{"encrypted_value": "${{ secrets.AZURE_CREDENTIALS }}"}' \
-          "https://api.github.com/repos/your-org/target-repo/actions/secrets/AZURE_CREDENTIALS"
 
       - name: Setup Azure Login using Service Principal
         uses: azure/login@v1

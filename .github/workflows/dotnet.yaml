@@ -5,9 +5,7 @@ on:
     branches:
       - none
     paths:
-      - 'calculator/**'  # Trigger build on changes to the calculator folder
-      
-  
+      - 'calculator/**'  ### Trigger build on changes to the calculator folder
   workflow_dispatch:
     inputs:
       appname:
@@ -17,9 +15,7 @@ on:
 
 permissions:
   id-token: write
-  contents: write
-  pull-requests: write
-  actions: write
+  contents: read
 
 jobs:
   build:
@@ -81,30 +77,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Step 1: Get the encrypted secret from AppRepos
-      - name: Get Azure Credentials from AppRepos
-        id: get_secret
+      - name: Copy Azure Credentials Secret to Another Repository
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          encrypted_value=$(curl -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -X GET "https://api.github.com/repos/Prayankag/AppRepos/actions/secrets/AZURE_CREDENTIALS" \
-            | jq -r '.encrypted_value')
-          echo "::set-output name=encrypted_value::$encrypted_value"
-      
-      # Step 2: Get the public key from the target repo to encrypt the secret
-      - name: Get public key for target repo
-        id: get_public_key
-        run: |
-          key_id=$(curl -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -X GET "https://api.github.com/repos/Prayankag/new1/actions/secrets/public-key" \
-            | jq -r '.key_id')
-          echo "::set-output name=key_id::$key_id"
+          curl -X PUT -H "Authorization: Bearer $GITHUB_TOKEN" \
+          -d '{"encrypted_value": "${{ secrets.AZURE_CREDENTIALS }}"}' \
+          "https://api.github.com/user/repos/Prayankag/AppRepos/actions/secrets/AZURE_CREDENTIALS"
 
-      # Step 3: Set the secret in the target repo
-      - name: Set Azure Credentials in Target Repo
-        run: |
-          curl -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -X PUT "https://api.github.com/repos/Prayankag/new1/actions/secrets/AZURE_CREDENTIALS" \
-            -d '{"encrypted_value": "${{ steps.get_secret.outputs.encrypted_value }}", "key_id": "${{ steps.get_public_key.outputs.key_id }}"}'
       - name: Setup Azure Login using Service Principal
         uses: azure/login@v1
         with:
@@ -151,11 +131,11 @@ jobs:
 
       - name: Copy Azure Credentials Secret to Another Repository
         env:
-          GIT_PAT: ${{ secrets.GIT_PAT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          curl -X PUT -H "Authorization: Bearer $GIT_PAT" \
+          curl -X PUT -H "Authorization: Bearer $GITHUB_TOKEN" \
           -d '{"encrypted_value": "${{ secrets.AZURE_CREDENTIALS }}"}' \
-          "https://api.github.com/repos/Prayankag/target-repo/actions/secrets/AZURE_CREDENTIALS"
+          "https://api.github.com/repos/your-org/target-repo/actions/secrets/AZURE_CREDENTIALS"
 
       - name: Setup Azure Login using Service Principal
         uses: azure/login@v1
@@ -165,7 +145,7 @@ jobs:
       - name: Request Approval to Deploy to Staging
         uses: github-actions/approval-action@v2
         with:
-          token: ${{ secrets.GIT_PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           environment: 'staging'
           approvers: 'staging-team'  # Replace with the team or individuals who should approve
 
@@ -210,9 +190,9 @@ jobs:
 
       - name: Copy Azure Credentials Secret to Another Repository
         env:
-          GIT_PAT: ${{ secrets.GIT_PAT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          curl -X PUT -H "Authorization: Bearer $GIT_PAT" \
+          curl -X PUT -H "Authorization: Bearer $GITHUB_TOKEN" \
           -d '{"encrypted_value": "${{ secrets.AZURE_CREDENTIALS }}"}' \
           "https://api.github.com/repos/your-org/target-repo/actions/secrets/AZURE_CREDENTIALS"
 
@@ -224,7 +204,7 @@ jobs:
       - name: Request Approval to Deploy to Production
         uses: github-actions/approval-action@v2
         with:
-          token: ${{ secrets.GIT_PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           environment: 'production'
           approvers: 'production-team'  # Replace with the team or individuals who should approve
 

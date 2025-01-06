@@ -1,0 +1,67 @@
+ame: dotnet Build & Deploy in web App
+
+on:
+  push:
+    branches:
+      - none
+    paths:
+      - 'calculator/**'  # Trigger build on changes to the calculator folder
+      
+  
+  workflow_dispatch:
+    inputs:
+      appname:
+        description: 'The Azure Web App name for deployment'
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+  contents: write
+  pull-requests: write
+  actions: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      artifact-path: ${{ steps.upload-artifact.outputs.artifact-path }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+jobs:
+  deploy-to-dev:
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ always() }}  # This ensures it always runs after the build job.
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Step 1: Get the encrypted secret from AppRepos
+      - name: Get Azure Credentials from AppRepos
+        id: get_secret
+        run: |
+          encrypted_value=$(curl -H "Authorization: Bearer ${{ secrets.GIT_PAT }}" \
+            -X GET "https://api.github.com/repos/Prayankag/AppRepos/actions/secrets/AZURE_CREDENTIALS" \
+            | jq -r '.encrypted_value')
+          echo "::set-output name=encrypted_value::$encrypted_value"
+
+      # Step 2: Get the public key from the target repo to encrypt the secret
+      - name: Get public key for target repo
+        id: get_public_key
+        run: |
+          key_id=$(curl -H "Authorization: Bearer ${{ secrets.GIT_PAT }}" \
+            -X GET "https://api.github.com/repos/Prayankag/new1/actions/secrets/public-key" \
+            | jq -r '.key_id')
+          echo "::set-output name=key_id::$key_id"
+
+      # Step 3: Set the secret in the target repo
+      - name: Set Azure Credentials in Target Repo
+        run: |
+          curl -H "Authorization: Bearer ${{ secrets.GIT_PAT }}" \
+            -X PUT "https://api.github.com/repos/Prayankag/new1/actions/secrets/AZURE_CREDENTIALS" \
+            -d '{"encrypted_value": "${{ steps.get_secret.outputs.encrypted_value }}", "key_id": "${{ steps.get_public_key.outputs.key_id }}"}'
+      # Continue with the rest of your steps...

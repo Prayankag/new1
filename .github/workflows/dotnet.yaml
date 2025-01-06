@@ -5,7 +5,7 @@ on:
     branches:
       - none
     paths:
-      - 'calculator/**'  ### Trigger build on changes to the calculator folder
+      - 'calculator/**'  # Trigger build on changes to the calculator folder
   workflow_dispatch:
     inputs:
       appname:
@@ -83,7 +83,7 @@ jobs:
         run: |
           curl -X PUT -H "Authorization: Bearer $GIT_PAT" \
           -d '{"encrypted_value": "${{ secrets.AZURE_CREDENTIALS }}"}' \
-          "https://api.github.com/user/repos/Prayankag/AppRepos/actions/secrets/AZURE_CREDENTIALS"
+          "https://api.github.com/repos/Prayankag/target-repo/actions/secrets/AZURE_CREDENTIALS"
 
       - name: Setup Azure Login using Service Principal
         uses: azure/login@v1
@@ -135,7 +135,7 @@ jobs:
         run: |
           curl -X PUT -H "Authorization: Bearer $GIT_PAT" \
           -d '{"encrypted_value": "${{ secrets.AZURE_CREDENTIALS }}"}' \
-          "https://api.github.com/repos/your-org/target-repo/actions/secrets/AZURE_CREDENTIALS"
+          "https://api.github.com/repos/Prayankag/target-repo/actions/secrets/AZURE_CREDENTIALS"
 
       - name: Setup Azure Login using Service Principal
         uses: azure/login@v1

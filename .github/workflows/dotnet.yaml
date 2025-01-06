@@ -79,7 +79,7 @@ jobs:
 
       - name: Copy Azure Credentials Secret to Another Repository
         env:
-          GITHUB_TOKEN: ${{ secrets.GIT_PAT }}
+          GIT_PAT: ${{ secrets.GIT_PAT }}
         run: |
           curl -X PUT -H "Authorization: Bearer $GIT_PAT" \
           -d '{"encrypted_value": "your-azure-credentials-encrypted-value"}' \
@@ -131,9 +131,9 @@ jobs:
 
       - name: Copy Azure Credentials Secret to Another Repository
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_PAT: ${{ secrets.GIT_PAT }}
         run: |
-          curl -X PUT -H "Authorization: Bearer $GITHUB_TOKEN" \
+          curl -X PUT -H "Authorization: Bearer $GIT_PAT" \
           -d '{"encrypted_value": "${{ secrets.AZURE_CREDENTIALS }}"}' \
           "https://api.github.com/repos/your-org/target-repo/actions/secrets/AZURE_CREDENTIALS"
 
@@ -145,7 +145,7 @@ jobs:
       - name: Request Approval to Deploy to Staging
         uses: github-actions/approval-action@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GIT_PAT }}
           environment: 'staging'
           approvers: 'staging-team'  # Replace with the team or individuals who should approve
 
@@ -190,9 +190,9 @@ jobs:
 
       - name: Copy Azure Credentials Secret to Another Repository
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_PAT: ${{ secrets.GIT_PAT }}
         run: |
-          curl -X PUT -H "Authorization: Bearer $GITHUB_TOKEN" \
+          curl -X PUT -H "Authorization: Bearer $GIT_PAT" \
           -d '{"encrypted_value": "${{ secrets.AZURE_CREDENTIALS }}"}' \
           "https://api.github.com/repos/your-org/target-repo/actions/secrets/AZURE_CREDENTIALS"
 
@@ -204,7 +204,7 @@ jobs:
       - name: Request Approval to Deploy to Production
         uses: github-actions/approval-action@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GIT_PAT }}
           environment: 'production'
           approvers: 'production-team'  # Replace with the team or individuals who should approve
 

@@ -88,12 +88,12 @@ jobs:
 
           # Step 2: Get the public key from target repo to encrypt the secret
           key_id=$(curl -H "Authorization: Bearer $GIT_PAT" \
-            -X GET "https://api.github.com/repos/Prayankag/target-repo/actions/secrets/public-key" \
+            -X GET "https://api.github.com/repos/Prayankag/new1/actions/secrets/public-key" \
             | jq -r '.key_id')
 
           # Step 3: Set the secret in the target repo
           curl -H "Authorization: Bearer $GIT_PAT" \
-            -X PUT "https://api.github.com/repos/Prayankag/target-repo/actions/secrets/AZURE_CREDENTIALS" \
+            -X PUT "https://api.github.com/repos/Prayankag/new1/actions/secrets/AZURE_CREDENTIALS" \
             -d '{"encrypted_value": "'"$encrypted_value"'", "key_id": "'"$key_id"'"}'
 
       - name: Setup Azure Login using Service Principal
